@@ -370,8 +370,39 @@ public class QueryResource {
 			return Response.serverError().build();
 		}
 	}
-	
 
+	@GET
+	@Produces({"text/csv" })
+	@Path("/{queryname}/export/db")
+	public Response getQueryDBExport(@PathParam("queryname") String queryName){
+		if (log.isDebugEnabled()) {
+			log.debug("TRACK\t"  + "\t/query/" + queryName + "/export/db\tGET");
+		}
+		return getQueryDBExport(queryName, "flattened");
+	}
+	
+	@GET
+	@Produces({"text/csv" })
+	@Path("/{queryname}/export/db/{format}")
+	public Response getQueryDBExport(
+			@PathParam("queryname") String queryName,
+			@PathParam("format") String format){
+		if (log.isDebugEnabled()) {
+			log.debug("TRACK\t"  + "\t/query/" + queryName + "/export/db/"+format+"\tGET");
+		}
+		try {
+			byte[] doc = olapQueryService.getExport(queryName,"db",format);
+			String name = SaikuProperties.webExportCsvName;
+			return Response.ok(doc, MediaType.APPLICATION_OCTET_STREAM).header(
+					"content-disposition",
+					"attachment; filename = " + name + ".csv").header(
+							"content-length",doc.length).build();
+		}
+		catch (Exception e) {
+			log.error("Cannot get csv for query (" + queryName + ")",e);
+			return Response.serverError().build();
+		}
+	}
 
 	@POST
 	@Produces({"application/pdf" })

@@ -385,6 +385,57 @@ public class Query2Resource {
             throw new WebApplicationException(Response.serverError().entity(error).build());
         }
     }
+    
+    
+    /**
+     * Get DB export of a query.
+     * @summary DB Export.
+     * @param queryName The query name
+     * @return A response containing a DB file
+     */
+      @GET
+      @Produces({"text/plain" })
+      @Path("/{queryname}/export/db")
+      public Response getQueryDBExport(@PathParam("queryname") String queryName) {
+          if (log.isDebugEnabled()) {
+              log.debug("TRACK\t"  + "\t/query/" + queryName + "/export/db\tGET");
+          }
+          return getQueryDBExport(queryName, "flattened", "", null);
+      }
+
+    /**
+     * Get DB export of a query.
+     * @summary DB Export.
+     * @param queryName The query name
+     * @param format The cell set format
+     * @param name The export name
+     * @return A response containing a DB file
+     */
+      @GET
+      @Produces({"text/plain" })
+      @Path("/{queryname}/export/db/{format}/{tablename}")
+      public Response getQueryDBExport(
+              @PathParam("queryname") String queryName,
+              @PathParam("format") String format,
+              @PathParam("tablename") String tablename,@QueryParam("exportname") @DefaultValue("") String name){
+          if (log.isDebugEnabled()) {
+              log.debug("TRACK\t"  + "\t/query/" + queryName + "/export/db/"+format+"/"+tablename+"\tGET");
+          }
+          try {
+              String res = thinQueryService.getExport(queryName,"db",format,tablename);
+              if(res!=null)
+            	  return Response.ok("res").build();
+              else{
+            	  //String error = ExceptionUtils.getRootCauseMessage(e);
+              	  return Response.serverError().build();
+              }
+          }
+          catch (Exception e) {
+              log.error("Cannot export db for query (" + queryName + ")",e);
+              String error = ExceptionUtils.getRootCauseMessage(e);
+              throw new WebApplicationException(Response.serverError().entity(error).build());
+          }
+      }
 
   /**
    * Zoom into a query result table.
